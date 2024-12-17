@@ -9,3 +9,4 @@ node_modules
 # pixi environments
 .pixi
 *.egg-info
+.yarn/install-state.gz

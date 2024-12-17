@@ -87,18 +87,27 @@
           }
         }
       }
-    ]
+    ],
+    "icons": {
+      "prefix-dev": {
+        "description": "Prefix Team Logo",
+        "default": {
+          "fontPath": "./assets/prefix-dev.woff",
+          "fontCharacter": "\\E800"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
+    "compile-tests": "yarn install && tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "vscode-test --install-extension ms-python.vscode-python-envs --pre-release"
+    "test": "yarn run pretest && vscode-test --install-extension 'ms-python.vscode-python-envs@0.1.2024121701' --pre-release "
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",

@@ -5,7 +5,9 @@ import { getEnvExtApi } from "./pythonEnvsApi";
 import { registerLogger } from "./common/logging";
 import { EXTENSION_NAME } from "./common/constants";
 import { findPixiProjects } from "./managers/pixi_finder";
-import { Pixi } from "./managers/pixi";
+import { Pixi } from "./managers/pixiAPI";
+import { PixiPackageManager } from "./managers/pixiPackageManager";
+import { PixiEnvironmentManager } from "./managers/pixiEnvironmentManager";
 import * as log from "./common/logging";
 
 // This method is called when your extension is activated
@@ -55,9 +57,8 @@ export async function activate(context: vscode.ExtensionContext) {
     let all_pixis = pixi_projects.map((project) => new Pixi(project));
   }
 
-
-  // const envManager = new SampleEnvManager(api);
-  // context.subscriptions.push(api.registerEnvironmentManager(envManager));
+  const envManager = new PixiEnvironmentManager(outputChannel);
+  context.subscriptions.push(api.registerEnvironmentManager(envManager));
 }
 
 // This method is called when your extension is deactivated
