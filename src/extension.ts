@@ -51,14 +51,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const api = await getEnvExtApi();
 
-  if (pixi_projects.length > 0) {
-    // const pixi = new Pixi(pixi_projects[0]);
-    // await pixi.initialize();
-    let all_pixis = pixi_projects.map((project) => new Pixi(project));
+  if (pixi_projects.length == 0) {
+    log.info("No Pixi projects found in the workspace");
+    return;
   }
 
-  const envManager = new PixiEnvironmentManager(outputChannel);
+  let all_pixis: Pixi[] = pixi_projects.map((project) => new Pixi(project));
+
+  const envManager = new PixiEnvironmentManager(outputChannel, all_pixis, api);
   context.subscriptions.push(api.registerEnvironmentManager(envManager));
+
 }
 
 // This method is called when your extension is deactivated

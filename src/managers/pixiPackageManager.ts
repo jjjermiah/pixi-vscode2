@@ -11,28 +11,10 @@ import {
   Event,
   EventEmitter,
   LogOutputChannel,
-  ProgressLocation,
-  CancellationError,
-  CancellationToken,
-  ProgressOptions,
-  Progress,
-  window,
 } from "vscode";
 import { Pixi } from "./pixiAPI";
 import { execShellWithTimeout } from "../common/shell";
 
-export function withProgress<R>(
-  options: ProgressOptions,
-  task: (
-    progress: Progress<{
-      message?: string;
-      increment?: number;
-    }>,
-    token: CancellationToken
-  ) => Thenable<R>
-): Thenable<R> {
-  return window.withProgress(options, task);
-}
 
 function getChanges(
   before: Package[],

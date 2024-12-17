@@ -5,7 +5,7 @@ import { getPixiExecutablePath } from "../config";
 import * as vscode from "vscode";
 
 export class Pixi {
-  private pixiInfo: PixiInfo | null = null;
+  public pixiInfo: PixiInfo | null = null;
 
   constructor(public manifestPath: string) {
     this.initialize();
