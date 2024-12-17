@@ -9,7 +9,10 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "workspaceContains:**/pyproject.toml",
+    "workspaceContains:**/pixi.toml"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
