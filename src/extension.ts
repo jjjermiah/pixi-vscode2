@@ -4,7 +4,8 @@ import * as vscode from "vscode";
 import { getEnvExtApi } from "./pythonEnvsApi";
 import { registerLogger } from "./common/logging";
 import { EXTENSION_NAME } from "./common/constants";
-import { findPixiProjects } from "./managers/pixi";
+import { findPixiProjects } from "./managers/pixi_finder";
+import { Pixi } from "./managers/pixi";
 import * as log from "./common/logging";
 
 // This method is called when your extension is activated
@@ -20,12 +21,16 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       "pixi-vscode2.viewLogs",
       outputChannel.show.bind(outputChannel)
+    ),
+    vscode.commands.registerCommand(
+      "pixi-vscode2.clearLogs",
+      outputChannel.clear.bind(outputChannel)
     )
   );
 
 	// Find Pixi projects in the workspace
 	let pixi_projects = await findPixiProjects();
-	log.info(`Extension Activation: Found ${pixi_projects.length} pixi projects:`, pixi_projects);
+	log.info(`Extension Activation: Found ${pixi_projects.length} pixi projects`);
 
   /// ---------------------------------------------------------------------------------------------
   // The command has been defined in the package.json file
@@ -43,6 +48,13 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable);
 
   const api = await getEnvExtApi();
+
+  if (pixi_projects.length > 0) {
+    // const pixi = new Pixi(pixi_projects[0]);
+    // await pixi.initialize();
+    let all_pixis = pixi_projects.map((project) => new Pixi(project));
+  }
+
 
   // const envManager = new SampleEnvManager(api);
   // context.subscriptions.push(api.registerEnvironmentManager(envManager));

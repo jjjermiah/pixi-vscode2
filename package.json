@@ -19,12 +19,76 @@
       {
         "command": "pixi-vscode2.viewLogs",
         "title": "Pixi: View Logs"
+      },
+      {
+        "command": "pixi-vscode2.clearLogs",
+        "title": "Pixi: Clear Logs"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Pixi Defaults",
+        "properties": {
+          "pixi-vscode.prefixAPIKey": {
+            "type": "string",
+            "default": "",
+            "description": "The prefix API key"
+          },
+          "pixi-vscode.defaults.defaultProjectType": {
+            "type": "string",
+            "default": "pixi",
+            "enum": [
+              "pixi",
+              "pyproject"
+            ],
+            "description": "The default type of project to create when initializing a new Pixi project"
+          },
+          "pixi-vscode.defaults.defaultChannels": {
+            "description": "The default channels to use when creating a new project",
+            "type": "array",
+            "scope": "resource",
+            "items": {
+              "type": "string"
+            },
+            "default": [
+              "conda-forge"
+            ]
+          },
+          "pixi-vscode.defaults.defaultPlatforms": {
+            "description": "The default platforms to use when creating a new project",
+            "type": "array",
+            "scope": "resource",
+            "items": {
+              "type": "string"
+            },
+            "default": [
+              "osx-64",
+              "osx-arm64"
+            ]
+          }
+        }
+      },
+      {
+        "title": "Pixi Projects",
+        "properties": {
+          "pixi-vscode.executablePath": {
+            "type": "string",
+            "default": "",
+            "description": "The path to the Pixi executable"
+          },
+          "pixi-vscode.projects.ignore": {
+            "description": "Additional ignores to use when searching for Pixi projects, useful to ignore toml files from i.e test directories",
+            "type": "array",
+            "default": [],
+            "scope": "resource",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
       }
     ]
   },
-  "extensionDependencies": [
-    "ms-python.vscode-python-envs"
-  ],
   "scripts": {
     "vscode:prepublish": "yarn run package",
     "compile": "webpack",
@@ -34,7 +98,7 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "vscode-test"
+    "test": "vscode-test --install-extension ms-python.vscode-python-envs --pre-release"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
@@ -47,6 +111,7 @@
     "eslint": "^8.57.0",
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.5",
+    "vscode-extension-tester": "^8.10.0",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4"
   }

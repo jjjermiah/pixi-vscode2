@@ -4,6 +4,8 @@ node_modules
 .vscode-test/
 *.vsix
 
+.yarn/install-state.gz
+
 # pixi environments
 .pixi
 *.egg-info

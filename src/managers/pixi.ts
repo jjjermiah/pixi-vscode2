@@ -1,82 +1,83 @@
-import * as vscode from "vscode";
-import * as log from "../common/logging";
+import { debug, info, warn, error } from "../common/logging";
 import * as shell from "../common/shell";
+import { PixiInfo } from "../types/pixi_info";
+import { getPixiExecutablePath } from "../config";
+import * as vscode from "vscode";
 
-export async function findPixiProjects(): Promise<string[]> {
-  const workspaceFolders = vscode.workspace.workspaceFolders ?? [];
+export class Pixi {
+  private pixiInfo: PixiInfo | null = null;
 
-  log.debug(`Found ${workspaceFolders.length} workspace folders.`, workspaceFolders);
+  constructor(public manifestPath: string) {
+    this.initialize();
+  }
 
-  const pixiProjects = await Promise.all(
-    workspaceFolders.map(async (folder) => {
-      const pixiLocks = await findPixiLocks(folder);
-      const manifestPaths = await Promise.all(
-        pixiLocks.map((pixiLock) => findManifestPath(pixiLock))
+  private setupFileWatcher(): void {
+    const fileWatcher = vscode.workspace.createFileSystemWatcher(this.manifestPath || "");
+    fileWatcher.onDidChange(() => {
+      info(`Manifest updated. Resetting Pixi Info for ${this.manifestPath}`);
+      this.initialize();
+    });
+    fileWatcher.onDidDelete(() => {
+      error(`Manifest file ${this.manifestPath} was deleted`);
+    });
+  }
+
+  private async initialize(): Promise<void> {
+    try {
+      const info = await this.getPixiInfo();
+
+      if (!info) {
+        throw new Error("Failed to get Pixi Info");
+      }
+
+      if (!info.project_info) {
+        throw new Error("Not a valid Pixi Project, missing 'project_info'");
+      }
+
+      this.logPixiInfo(info);
+
+    } catch (error) {
+      if (error instanceof Error) {
+        warn(error.message, this.manifestPath);
+      } else {
+        warn(`An unknown error occurred. Error: ${error}`, this.manifestPath);
+      }
+    }
+  }
+
+  public async EnvironmentNames(): Promise<string[]> {
+    if (!this.pixiInfo) {
+      return [];
+    }
+
+    return this.pixiInfo.environments_info.map((env) => env.name);
+  }
+
+  private async getPixiInfo(): Promise<PixiInfo | null> {
+    try {
+      const output = await shell.execShellWithTimeout(
+        `${getPixiExecutablePath()} info --manifest-path ${
+          this.manifestPath
+        } --json`,
+        5000
       );
-      return manifestPaths;
-    })
-  );
-
-  return pixiProjects.flat();
-}
-
-
-
-/**
- * Finds Pixi projects within the given workspace folder.
- *
- * This function searches for any `pixi.lock` file recursively within the workspace folder,
- * which is an indicator of a Pixi project. The presence of this file suggests that there
- * should be either a `pyproject.toml` or a `pixi.toml` file next to it.
- *
- * @param wsf - The workspace folder to search within.
- * @returns A promise that resolves to an array of URIs pointing to the found `pixi.lock` files.
- */
-async function findPixiLocks(
-  wsf: vscode.WorkspaceFolder
-): Promise<vscode.Uri[]> {
-  const projects = await vscode.workspace.findFiles(
-    // find any `pixi.lock` file recursively, which is a sign of a Pixi project
-    // Then next to it there should be either a pyproject.toml or a pixi.toml
-    new vscode.RelativePattern(wsf, "**/pixi.lock")
-  );
-  return projects;
-}
-
-/**
- * Find the path of the manifest file (pixi.toml or pyproject.toml) given the path of the pixi.lock file
- *
- * @param pixiLockUri URI of the pixi.lock file
- * @returns  URI of the manifest file (pixi.toml or pyproject.toml)
- * @throws Error if neither pixi.toml nor pyproject.toml is found
- */
-async function findManifestPath(
-  pixiLockUri: vscode.Uri
-): Promise<string> {
-  const parentDir = vscode.Uri.joinPath(pixiLockUri, "..");
-
-  // check if pixi.toml exists
-  const pixiToml = vscode.Uri.joinPath(parentDir, "pixi.toml");
-  if (
-    await vscode.workspace.fs.stat(pixiToml).then(
-      () => true,
-      () => false
-    )
-  ) {
-    return pixiToml.fsPath;
-  }
-  const pyprojectToml = vscode.Uri.joinPath(parentDir, "pyproject.toml");
-  if (
-    await vscode.workspace.fs.stat(pyprojectToml).then(
-      () => true,
-      () => false
-    )
-  ) {
-    return pyprojectToml.fsPath;
+      this.pixiInfo = JSON.parse(output) as PixiInfo;
+      return this.pixiInfo;
+    } catch (error) {
+      warn("Error executing shell command", error);
+      return null;
+    }
   }
 
-  throw new Error(
-    "Neither pixi.toml nor pyproject.toml was found in the directory."
-  );
+  private logPixiInfo(info: PixiInfo): void {
+    debug(`Pixi Info: ${this.manifestPath}`, {
+      project_name: info.project_info.name,
+      environments: info.environments_info.map((env) => ({
+        name: env.name,
+        features: env.features.length,
+        tasks: env.tasks.length,
+        dependencies: `conda: ${env.dependencies.length} + pypi: ${env.pypi_dependencies.length}`,
+      })),
+    });
+  }
 }
-
