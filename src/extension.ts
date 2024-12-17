@@ -3,8 +3,10 @@
 import * as vscode from "vscode";
 import { getEnvExtApi } from "./pythonEnvsApi";
 import { registerLogger } from "./common/logging";
+import { EXTENSION_NAME } from "./common/constants";
+import { findPixiProjects } from "./managers/pixi";
+import * as log from "./common/logging";
 
-const EXTENSION_NAME = "pixi-vscode2";
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
@@ -20,6 +22,10 @@ export async function activate(context: vscode.ExtensionContext) {
       outputChannel.show.bind(outputChannel)
     )
   );
+
+	// Find Pixi projects in the workspace
+	let pixi_projects = await findPixiProjects();
+	log.info(`Extension Activation: Found ${pixi_projects.length} pixi projects:`, pixi_projects);
 
   /// ---------------------------------------------------------------------------------------------
   // The command has been defined in the package.json file
