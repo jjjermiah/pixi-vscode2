@@ -1,5 +1,6 @@
 {
   "name": "pixi-vscode2",
+  "publisher": "jjjermiah",
   "displayName": "pixi-vscode2",
   "description": "test env",
   "version": "0.0.1",

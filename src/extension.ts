@@ -59,6 +59,9 @@ export async function activate(context: vscode.ExtensionContext) {
   let all_pixis: Pixi[] = pixi_projects.map((project) => new Pixi(project));
 
   const envManager = new PixiEnvironmentManager(outputChannel, all_pixis, api);
+
+  const packageManager = new PixiPackageManager(outputChannel);
+  context.subscriptions.push(api.registerPackageManager(packageManager));
   context.subscriptions.push(api.registerEnvironmentManager(envManager));
 
 }

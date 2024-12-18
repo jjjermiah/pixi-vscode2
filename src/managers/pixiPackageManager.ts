@@ -29,7 +29,7 @@ function getChanges(
 }
 
 export class PixiPackageManager implements PackageManager {
-  readonly name = "pixi-vscode.pixi";
+  readonly name = "pixi";
   readonly displayName = "Pixi DisplayName";
   readonly description = "Manage packages using the Pixi package manager";
   readonly tooltip = "Pixi package manager";

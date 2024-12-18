@@ -37,9 +37,9 @@ import * as vscode from "vscode";
 export class PixiEnvironmentManager implements EnvironmentManager {
   name: string = "Pixi";
   displayName: string = "Pixi Environment Manager";
-  preferredPackageManagerId: string = "pixi-vscode.pixi";
+  preferredPackageManagerId: string = 'ms-python.python:pixi';
   description: string =
-    "Manage environments using the Pixi environment manager";
+    "Manage Pixi project environments";
   tooltip: string | MarkdownString = "Pixi environment manager";
   iconPath: IconPath = new ThemeIcon("prefix-dev");
   outputChannel: LogOutputChannel;
@@ -141,6 +141,12 @@ export class PixiEnvironmentManager implements EnvironmentManager {
   async refresh(scope: RefreshEnvironmentsScope): Promise<void> {
     // Code to handle refreshing environments goes here
     // This is called when the user clicks on the refresh button in the UI
+
+    if (scope !== undefined) {
+      // exit function
+      return;
+    }
+
 
     throw new Error("Method not implemented.");
   }
