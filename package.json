@@ -108,7 +108,7 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "yarn run pretest && vscode-test --install-extension 'ms-python.vscode-python-envs@0.1.2024121701' --pre-release "
+    "test": "yarn run pretest && vscode-test --install-extension 'ms-python.vscode-python-envs@0.1.2024121902' --pre-release "
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
