@@ -26,7 +26,7 @@ import {
 } from "../api";
 
 import { createDeferred, Deferred } from "../common/deferred";
-
+import * as log from "../common/logging";
 import { Pixi } from "../managers/pixiAPI";
 import { withProgress } from "../common/windowAPI";
 import * as vscode from "vscode";
@@ -37,12 +37,11 @@ import * as vscode from "vscode";
 export class PixiEnvironmentManager implements EnvironmentManager {
   name: string = "Pixi";
   displayName: string = "Pixi Environment Manager";
-  preferredPackageManagerId: string = 'ms-python.python:pixi';
-  description: string =
-    "Manage Pixi project environments";
-  tooltip: string | MarkdownString = "Pixi environment manager";
+  preferredPackageManagerId: string = 'jjjermiah.pixi-vscode2:pixi';
+  description: string = "Manage Pixi project environments";
+  tooltip: string | MarkdownString = `Pixi environment manager`;
   iconPath: IconPath = new ThemeIcon("prefix-dev");
-  outputChannel: LogOutputChannel;
+  outputChannel: LogOutputChannel
   pixi_projects: Pixi[];
   api: PythonEnvironmentApi;
 
@@ -122,14 +121,75 @@ export class PixiEnvironmentManager implements EnvironmentManager {
         });
       }
     );
+
+    this._initialized.resolve();
+
   }
 
-  create?(
+  // Code to handle creating environments goes here
+  // so, this is called when the user clicks on the "+" button in the UI
+  // if multiple workspaces are available, the user will be prompted to select one or more
+  // for now, we only handle choosing one workspace 
+  // scope can be a URI | URI[] | 'global'
+  async create?(
     scope: CreateEnvironmentScope
   ): Promise<PythonEnvironment | undefined> {
-    // Code to handle creating environments goes here
+    log.info("Creating environment with scope: ", scope);
 
-    throw new Error("Method not implemented.");
+    // if scope is NOT a single URI, throw an error
+    if (Array.isArray(scope) && scope.length !== 1) {
+      const errmsg = `Pixi EnvMgr::Create -- length of scope is ${scope.length}`
+      log.error(errmsg);
+      throw new Error(errmsg);
+    } else if (scope === "global") {
+      const errmsg = `Pixi EnvMgr::Create -- scope is 'global', not implemented`
+      log.error(errmsg);
+      throw new Error(errmsg);
+    }
+
+    // if scope is a single URI, get the path
+    let path: string = '';
+    if (scope instanceof vscode.Uri) {
+      path = scope.fsPath;
+    } else {
+      path = scope[0].fsPath;
+    }
+
+    log.debug(`Pixi EnvMgr::Create -- path: ${path}`);
+    await withProgress(
+      {
+        location: ProgressLocation.Notification,
+        title: `Creating Pixi Environment`,
+        cancellable: true,
+      },
+      async (progress, token) => {
+        progress.report({ message: "Finding Pixi project" });
+
+        // find the Pixi project that matches the path
+        let pixi_project = this.pixi_projects.find((pixi) => {
+          // either the manifestPath is path OR path is a prefix (directory) of the manifestPath
+          return ((pixi.manifestPath === path) || (pixi.manifestPath.startsWith(path)));
+        });
+
+        if (pixi_project === undefined) {
+          log.error(`Pixi EnvMgr::Create -- no Pixi project found for path: ${path}`);
+          return undefined;
+        }
+        else {
+          log.info(`Pixi EnvMgr::Create -- found Pixi project: ${pixi_project.manifestPath}`);
+        }
+
+        // get the list of environments for the project
+        let env_names = pixi_project.EnvironmentNames();
+
+        // let user pick features 
+        await pixi_project.createEnvironment(progress);
+      }
+
+    );
+
+    return undefined;
+    
   }
 
   remove?(environment: PythonEnvironment): Promise<void> {
@@ -156,7 +216,7 @@ export class PixiEnvironmentManager implements EnvironmentManager {
   ): Promise<PythonEnvironment[]> {
     // Code to get the list of environments goes here
     // This may be called when the python extension is activated to get the list of environments
-
+    log.info("Getting environments with scope: ", scope);
     await this.initialize();
 
     if (scope === "all") {
